@@ -1,0 +1,8 @@
+chrome V8 engine + c++    --given-->   node.exe (for backend)
+NodeJs -> is runtime environemnt for js that execute js on server.
+
+In NodeJs single thread can manage multiple connections.
+
+
+npm init -> for creating package.json
+npm i package_name
