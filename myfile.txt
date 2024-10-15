@@ -1,0 +1,2 @@
+Hello, this file is created using nodejs
+This line is appended in this file using appendFile function of nodejs
