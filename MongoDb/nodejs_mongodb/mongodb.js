@@ -6,7 +6,7 @@ async function createCollection(collectionName) {
     try {
         const db = await connectToMongo();
         const collection = await db.createCollection(collectionName);
-        console.log(`Collection '${collectionName}' created.`);
+        console.log(`Collection ${collectionName} created.`);
         return collection;
     } catch (error) {
         console.error(`Error creating collection '${collectionName}':`, error);
