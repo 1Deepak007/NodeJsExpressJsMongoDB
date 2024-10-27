@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/ecommdashboard');
+const conn = mongoose.connect('mongodb://localhost:27017/ecommdashboard');
 
-
+module.exports = conn
 
 
 
