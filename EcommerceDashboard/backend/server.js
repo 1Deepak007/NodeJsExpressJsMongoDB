@@ -1,3 +1,6 @@
+// POST creates a resource. PUT replaces a resource. PATCH updates a resource.
+
+
 require('./db/config');                         // db connection
 const express = require('express');
 const bcrypt = require('bcrypt');
@@ -124,6 +127,7 @@ app.post('/login', async (req, res) => {
 
 
 // GET ALL PRODUCTS
+// http://localhost:5647/get_all_products
 app.get('/get_all_products', verifyToken, async (req, res) => {
     try {
         const products = await Product.find();
@@ -141,20 +145,44 @@ app.get('/get_all_products', verifyToken, async (req, res) => {
 })
 
 
-// ADD PRODUCT API 
-app.patch("/add_product", verifyToken, async (req, res) => {
+// GET ALL PRODUCTS ADDED BY A SPECIFIC USER
+// http://localhost:5647/get_all_products/671e1db794949ad750b549a5
+app.get('/get_all_products/:userId', async (req, res) => {
     try {
-        let product = new Product(req.body);
-        let result = await product.update;
-        res.send({ message: "Data Updated successfully.", data: result }); // Send a proper response object
+        const userId = req.params.userId;
+        const products = await Product.find({ userId });
+
+        if (products.length > 0) {
+            res.send(products);
+        } else {
+            res.send({ result: "No products found for the specified user." });
+        }
+    } catch (error) {
+        console.log('Error getting products for the user');
+        throw error;
+    }
+});
+
+
+// ADD PRODUCT API 
+// http://localhost:5647/add_product        raw json -> {"name": "Asus Zenbook", "price": "80000", "category": "Laptop", "userId": "671dfa41847397a112ee4654", "company": "Asus"}
+app.post("/add_product", verifyToken, async (req, res) => {
+    try {
+        const  { name, price, category, company, userId } = req.body;
+
+        let product = new Product({name, price, category, company, userId});
+        let result = await product.save();
+        if(result){
+            res.send({ message: "Added new product successfully.", data: result }); // Send a proper response object
+        }
+        else{
+            return res.send({ message: "Product not added!" }); // Send a proper response object
+        }
     } catch (error) {
         res.status(500).json({ error: "Error adding product", message: error.message });
     }
 });
-// {
-// 	"name": "Asus Zenbook", "price": "80000", "category": "Laptop",
-//  "userId": "6714cf32f2909e8f355aeae9", "company": "Asus"
-// }
+
 
 
 // UPDATE PRODUCT API
