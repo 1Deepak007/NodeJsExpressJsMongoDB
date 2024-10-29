@@ -17,9 +17,8 @@ const app = express();
 // const db = conn;
 
 
-const JWT_SECRET = "my_JWT_secret_Key_hahaha";
-
-const token = jwt.sign({ id: User._id, email: User.email }, JWT_SECRET, { expiresIn: '1d' });
+const JWT_SECRET = process.env.JWT_SECRET || "my_JWT_secret_Key_hahaha"; // Use environment variable
+// const token = jwt.sign({ id: User._id, email: User.email }, JWT_SECRET, { expiresIn: '1d' });
 
 
 app.use(express.json());            // To handle JSON payloads
@@ -31,26 +30,45 @@ app.use(cors());                                // middleware
 
 
 // Middleware to verify token
-const verifyToken = (req, res, next) => {
+// const verifyToken = (req, res, next) => {
+//     if (!token) {
+//         return res.status(403).json({ message: 'No token provided' });
+//     }
+//     // Remove the "Bearer " part from the token if present
+//     if (token.startsWith('Bearer ')) {
+//         token = token.slice(7, token.length); // Remove "Bearer " prefix
+//     }
 
-    if (!token) {
+//     jwt.verify(token, JWT_SECRET, (err, decoded) => {
+//         if (err) {
+//             return res.status(401).json({ message: 'Unauthorized' });
+//             // navigate('/login');
+//         }
+
+//         req.userId = decoded.Id; // You can access the userId in your routes now
+//         next();
+//     });
+// };
+
+const verifyToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) {
         return res.status(403).json({ message: 'No token provided' });
     }
-    // Remove the "Bearer " part from the token if present
-    if (token.startsWith('Bearer ')) {
-        token = token.slice(7, token.length); // Remove "Bearer " prefix
-    }
+
+    // Remove "Bearer " prefix if present
+    let token = authHeader.startsWith('Bearer ') ? authHeader.slice(7, authHeader.length) : authHeader;
 
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
         if (err) {
             return res.status(401).json({ message: 'Unauthorized' });
-            // navigate('/login');
         }
 
-        req.userId = decoded.Id; // You can access the userId in your routes now
+        req.userId = decoded.id; // Attach decoded userId to request
         next();
     });
 };
+
 
 
 
@@ -82,7 +100,7 @@ app.post("/register", async (req, res) => {
         // Create a JWT token
         const token = jwt.sign({ id: result._id, email: result.email }, JWT_SECRET, { expiresIn: '1h' });
 
-        res.json({ user: result, token });  // Send token along with user data
+        res.json(token);  // Send token along with user data
     } catch (error) {
         console.error("Error registering user:", error.message);  // Log the error for debugging
         res.status(500).json({ error: "Error registering user", message: error.message });
@@ -91,36 +109,39 @@ app.post("/register", async (req, res) => {
 
 
 
-// LOGIN API - ensuring both email and password sent while logging-in 
+// LOGIN API
 app.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).send({ message: "Both Email and Password are required" });
-        }
-
         // Find the user by email
         let user = await User.findOne({ email });
+
         if (!user) {
-            return res.status(404).send({ message: "User not found" });
+            return res.status(401).json({
+                message: 'Invalid email or password'
+            });
         }
 
-        // Compare the password with the stored hashed password
+        // Validate password using bcrypt
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(401).send({ message: "Wrong password" });
-        }
 
-        // Generate JWT token
-        const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
+        if (!isMatch) {
+            return res.status(401).json({
+                message: 'Invalid email or password'
+            });
+        }
 
         user = user.toObject();
-        delete user.password;  // Remove password from the response
+        delete user.password;
 
-        res.json({ user, token });
+        // Create a JWT token with appropriate secret and expiration time
+        const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
+
+        res.json({ userId: user._id, userEmail: user.email, token });
     } catch (error) {
-        res.status(500).json({ error: "Error logging in", message: error.message });
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Error logging in' });
     }
 });
 
@@ -147,7 +168,7 @@ app.get('/get_all_products', verifyToken, async (req, res) => {
 
 // GET ALL PRODUCTS ADDED BY A SPECIFIC USER
 // http://localhost:5647/get_all_products/671e1db794949ad750b549a5
-app.get('/get_all_products/:userId', async (req, res) => {
+app.get('/get_all_products/:userId', verifyToken, async (req, res) => {
     try {
         const userId = req.params.userId;
         const products = await Product.find({ userId });
@@ -168,14 +189,14 @@ app.get('/get_all_products/:userId', async (req, res) => {
 // http://localhost:5647/add_product        raw json -> {"name": "Asus Zenbook", "price": "80000", "category": "Laptop", "userId": "671dfa41847397a112ee4654", "company": "Asus"}
 app.post("/add_product", verifyToken, async (req, res) => {
     try {
-        const  { name, price, category, company, userId } = req.body;
+        const { name, price, category, company, userId } = req.body;
 
-        let product = new Product({name, price, category, company, userId});
+        let product = new Product({ name, price, category, company, userId });
         let result = await product.save();
-        if(result){
+        if (result) {
             res.send({ message: "Added new product successfully.", data: result }); // Send a proper response object
         }
-        else{
+        else {
             return res.send({ message: "Product not added!" }); // Send a proper response object
         }
     } catch (error) {
