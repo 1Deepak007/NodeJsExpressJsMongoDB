@@ -14,7 +14,12 @@ const AddProduct = () => {
 
   const auth = JSON.parse(localStorage.getItem('user'));
 
-  const userId = auth._id;
+  // const userId = auth._id;
+  const userId = auth?.userId;
+  const token = auth?.token;
+
+  console.log("User Id : ", userId);
+  console.log("Token : ", token);
 
   const formik = useFormik({
     initialValues: {
@@ -25,18 +30,25 @@ const AddProduct = () => {
       userId: userId
     },
     validationSchema: addProductSchema,
-    onSubmit: 
-      async (values) => {
-        console.log("Values : ",values)
-        try {
-          const response = await axios.post('http://localhost:5647/add_product', values);
-          console.log(response.data);
-          toast.success('Product added successfully!');
-        } catch (error) {
-          console.error(error);
-          toast.error('Failed to add product');
-        }
+    onSubmit: async (values) => {
+      console.log("Values : ", values);
+      try {
+        const response = await axios.post(
+          'http://localhost:5647/add_product',
+          values,
+          {
+            headers: {
+              'Authorization': `${token}`
+            }
+          }
+        );
+        console.log(response.data);
+        toast.success('Product added successfully!');
+      } catch (error) {
+        console.error(error);
+        toast.error('Failed to add product');
       }
+    }
   });
 
   return (

@@ -50,24 +50,53 @@ app.use(cors());                                // middleware
 //     });
 // };
 
+// Middleware for verifying JWT
+// const verifyToken = (req, res, next) => {
+//     const authHeader = req.headers['authorization'];
+//     if (!authHeader) {
+//         return res.status(403).json({ message: 'No token provided' });
+//     }
+
+//     // Remove "Bearer " prefix if present
+//     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+
+//     jwt.verify(token, JWT_SECRET, (err, decoded) => {
+//         if (err) {
+//             return res.status(401).json({ message: 'Unauthorized' });
+//         }
+
+//         req.userId = decoded.id; // Attach decoded userId to request
+//         next();
+//     });
+// };
+
+
+// Middleware to verify JWT token
 const verifyToken = (req, res, next) => {
+    // Log the authorization header for debugging
     const authHeader = req.headers['authorization'];
+    console.log("Authorization Header:", authHeader);
+
     if (!authHeader) {
         return res.status(403).json({ message: 'No token provided' });
     }
 
     // Remove "Bearer " prefix if present
-    let token = authHeader.startsWith('Bearer ') ? authHeader.slice(7, authHeader.length) : authHeader;
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+    console.log("Token extracted from header:", token);
 
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
         if (err) {
+            console.error("JWT Verification Error:", err);
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        req.userId = decoded.id; // Attach decoded userId to request
+        console.log("Decoded JWT Payload:", decoded);
+        req.userId = decoded.id;  // Attach decoded userId to request
         next();
     });
 };
+
 
 
 
@@ -149,7 +178,7 @@ app.post('/login', async (req, res) => {
 
 // GET ALL PRODUCTS
 // http://localhost:5647/get_all_products
-app.get('/get_all_products', verifyToken, async (req, res) => {
+app.get('/get_all_products', async (req, res) => {
     try {
         const products = await Product.find();
         if (products.length > 0) {
@@ -167,8 +196,8 @@ app.get('/get_all_products', verifyToken, async (req, res) => {
 
 
 // GET ALL PRODUCTS ADDED BY A SPECIFIC USER
-// http://localhost:5647/get_all_products/671e1db794949ad750b549a5
-app.get('/get_all_products/:userId', async (req, res) => {
+// http://localhost:5647/get_all_products/671dfa41847397a112ee4654
+app.get('/get_all_products/:userId', verifyToken, async (req, res) => {
     try {
         const userId = req.params.userId;
         const products = await Product.find({ userId });
@@ -222,6 +251,31 @@ app.put("/update_product/:id", verifyToken, async (req, res) => {
         res.sendStatus(500).json({ error: "Error updating product", message: error.message });
     }
 });
+
+// app.put("/update_product/:id", async (req, res) => {
+//     try {
+//         let productId = req.params.id;  // Ensure this captures the ID correctly
+//         console.log("Product ID:", productId);
+
+//         let product = await Product.findOneAndUpdate(
+//             { _id: productId },
+//             req.body,
+//             { new: true }
+//         );
+
+//         if (!product) {
+//             return res.status(404).json({ message: "Product not found" });
+//         }
+
+//         res.json({ message: "Product updated successfully", product });
+//         console.log("Updated Product:", product);
+
+//     } catch (error) {
+//         res.status(500).json({ error: "Error updating product", message: error.message });
+//     }
+// });
+
+// Usage example
 // http://localhost:5647/update_product/67194528a00c66ecff6984e7
 // {
 //     "name": "MacBook Air", "price": "65000", "category": "Laptop",
