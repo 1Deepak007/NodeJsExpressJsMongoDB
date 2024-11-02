@@ -168,7 +168,7 @@ app.get('/get_all_products', verifyToken, async (req, res) => {
 
 // GET ALL PRODUCTS ADDED BY A SPECIFIC USER
 // http://localhost:5647/get_all_products/671e1db794949ad750b549a5
-app.get('/get_all_products/:userId', verifyToken, async (req, res) => {
+app.get('/get_all_products/:userId', async (req, res) => {
     try {
         const userId = req.params.userId;
         const products = await Product.find({ userId });

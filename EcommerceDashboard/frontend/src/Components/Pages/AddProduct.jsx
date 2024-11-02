@@ -4,6 +4,7 @@ import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { useFormik } from 'formik'
 import { addProductSchema } from '../ValidationsSchemas/Validations';
+import { Link } from 'react-router-dom'
 
 
 
@@ -44,7 +45,8 @@ const AddProduct = () => {
         <ToastContainer />
         <div className="w-full bg-white rounded-lg shadow dark:border sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
           <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-            <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">Add product</h1>
+            <h1 className="text-xl mb-5 font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">Add product</h1>
+            <Link to='/products' className='ms-[60%] bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded-full mt-10'>See Products</Link>
             <form className="space-y-4 md:space-y-6" onSubmit={formik.handleSubmit}>
               <div>
                 <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Product name</label>
