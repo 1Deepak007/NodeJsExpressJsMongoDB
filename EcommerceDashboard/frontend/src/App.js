@@ -5,9 +5,15 @@ import Login from './Components/Pages/Login';
 import Products from './Components/Pages/Products';
 import AddProduct from './Components/Pages/AddProduct';
 import Navbar from './Components/SubComponents/Navbar';
+import { useEffect, useState } from 'react';
+
 
 function App() {
-    const auth = JSON.parse(localStorage.getItem('user'));
+    const[auth, setAuth] = useState();
+    useEffect(()=>{
+        const data = JSON.parse(localStorage.getItem('user'));
+        setAuth(data);
+    },[Route]);
 
     return (
         <div className="App">

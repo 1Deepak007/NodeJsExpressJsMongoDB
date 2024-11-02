@@ -1,9 +1,9 @@
-import { loginSchema } from '../ValidationsSchemas/Validations';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useFormik } from 'formik';
 import { toast, ToastContainer } from 'react-toastify';
 import { useEffect, useState } from 'react';
+import { loginSchema } from '../ValidationsSchemas/Validations';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -19,13 +19,14 @@ const Login = () => {
         onSubmit: async (values) => {
             setIsLoading(true);
             try {
-                const response = await
-                    axios.post('http://localhost:5647/login', values);
+                const response = await axios.post('http://localhost:5647/login', values);
                 const { userId, userEmail, token } = response.data;
 
                 if (userId && userEmail && token) {
                     localStorage.setItem('user', JSON.stringify({ userId, userEmail, token }));
                     navigate('/products'); // Navigate only if user data is complete
+                    // reload screen
+                    window.location.reload();
                 } else {
                     throw new Error('Invalid credentials or incomplete user data');
                 }

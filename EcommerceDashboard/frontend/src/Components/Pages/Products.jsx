@@ -4,7 +4,7 @@ import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { useFormik } from 'formik'
 import { addProductSchema } from '../ValidationsSchemas/Validations'
-import Navbar from '../SubComponents/Navbar'
+// import Navbar from '../SubComponents/Navbar'
 
 
 const Products = () => {
@@ -114,7 +114,6 @@ const Products = () => {
 };
 
 export default Products
-
 
 
 
