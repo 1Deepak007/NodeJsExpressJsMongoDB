@@ -13,6 +13,7 @@ const EditProductModal = ({ product, isOpen, onClose, onUpdate }) => {
 
   const auth = JSON.parse(localStorage.getItem('user'));
   const userId = auth?.userId;
+  const token = auth?.token;
 
   useEffect(() => {
     if (product) {
@@ -34,55 +35,32 @@ const EditProductModal = ({ product, isOpen, onClose, onUpdate }) => {
     }));
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   if (!product || !product._id) {
-  //     console.error('Product ID is missing');
-  //     return;
-  //   }
-  
-  //   try {
-  //     const response = await axios.put(
-  //       `http://localhost:5647/update_product/${product._id}`,
-  //       formData  // Send formData directly
-  //     );
-  //     onUpdate(response.data.product);
-  //     toast.success('Product updated successfully!');
-  //     onClose();
-  //   } catch (error) {
-  //     console.error(error);
-  //     toast.error('Failed to update product.');
-  //   }
-
-  //   console.log('Form Data : ', formData);
-  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!product || !product._id) {
-        console.error('Product ID is missing');
-        return;
+      console.error('Product ID is missing');
+      return;
     }
-
+  
     try {
-        const url = `http://localhost:5647/update_product/${product._id}`;
-        console.log("API URL:", url);
-        console.log("Form Data:", formData);
-
-        const response = await axios.put(url, formData);
-        onUpdate(response.data.product);
-        toast.success('Product updated successfully!');
-        console.log("Response Data:", response.data);
-        onClose();
+      const url = `http://localhost:5647/update_product/${product._id}`;
+  
+      const response = await axios.put(url, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Use the token here
+        },
+      });
+  
+      onUpdate(response.data.product);
+      toast.success('Product updated successfully!');
+      onClose();
     } catch (error) {
-        console.error("Error:", error.response ? error.response.data : error.message);
-        toast.error('Failed to update product.');
+      console.error("Error:", error.response ? error.response.data : error.message);
+      toast.error('Failed to update product.');
     }
-
-    console.log('Form Data:', formData);
-};
-
+  };
 
   if (!isOpen) return null;
 
@@ -93,58 +71,23 @@ const EditProductModal = ({ product, isOpen, onClose, onUpdate }) => {
         <form onSubmit={handleSubmit}>
           <label className="block mb-2">
             Name:
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-            />
+            <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full p-2 border rounded"/>
           </label>
           <label className="block mb-2">
             Price:
-            <input
-              type="text"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-            />
+            <input type="text" name="price" value={formData.price} onChange={handleChange} className="w-full p-2 border rounded"/>
           </label>
           <label className="block mb-2">
             Category:
-            <input
-              type="text"
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-            />
+            <input type="text" name="category" value={formData.category} onChange={handleChange} className="w-full p-2 border rounded"/>
           </label>
           <label className="block mb-4">
             Company:
-            <input
-              type="text"
-              name="company"
-              value={formData.company}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-            />
+            <input type="text" name="company" value={formData.company} onChange={handleChange} className="w-full p-2 border rounded"/>
           </label>
           <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              className="mr-2 px-4 py-2 bg-gray-300 rounded"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded"
-            >
-              Update
-            </button>
+            <button type="button" onClick={onClose} className="mr-2 px-4 py-2 bg-gray-300 rounded"> Cancel </button>
+            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded"> Update </button>
           </div>
         </form>
       </div>
